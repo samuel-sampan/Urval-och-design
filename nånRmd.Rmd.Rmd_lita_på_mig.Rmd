@@ -1,0 +1,170 @@
+---
+title: "Bortfallsanalys av childdata"
+author:
+- Samuel Olivares
+- Christian Niyonzima
+- Gustaf Fahlström
+- Marco Invanovic
+date: "`r format(Sys.Date(), '%Y-%m-%d')`"
+output:
+  html_document:
+    toc: true
+    toc_depth: '3'
+    df_print: paged
+  pdf_document:
+    toc: true
+    toc_depth: 3
+    number_sections: true
+    fig_caption: true
+    latex_engine: pdflatex
+geometry: margin=1in
+fontsize: 11pt
+lang: sv
+toc-title: Innehållsförteckning
+abstract: Long, people such as students at linköpings university been plagued by Thais
+  obligatory requests. Therefore the purpose of this study is to analyze the utilitarian
+  requests.
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  echo = FALSE,
+  message = FALSE,
+  warning = TRUE,
+  error = FALSE,
+  cache = FALSE,
+  fig.width = 7,
+  fig.height = 4.5,
+  fig.align = "center",
+  out.width = "100%",
+  fig.path = file.path(tempdir(), "childdata-")
+)
+
+analysvariabler <- c(
+  "BPI2014_2014", "DIGIT2014_2014", "COGNP2014_2014",
+  "MATH2014_2014", "RECOG2014_2014", "COMP2014_2014", "PPVT2014_2014"
+)
+
+las_childdata <- function(fil = "childdata 2026.csv") {
+  if (!file.exists(fil)) {
+    stop("Datafilen saknas: ", fil,
+         ". Lägg CSV-filen i samma mapp som rapporten.", call. = FALSE)
+  }
+
+  data <- utils::read.csv(
+    fil,
+    header = TRUE,
+    sep = ",",
+    na.strings = c("", "NA"),
+    strip.white = TRUE,
+    stringsAsFactors = FALSE,
+    check.names = FALSE,
+    fileEncoding = "UTF-8"
+  )
+
+  krav <- c(
+    "CPUBID_XRND", "MPUBID_XRND", "CRACE_XRND",
+    "CSEX_XRND", "CYRB_XRND", analysvariabler
+  )
+  saknade_kolumner <- setdiff(krav, names(data))
+  if (length(saknade_kolumner) > 0L) {
+    stop("CSV-filen saknar kolumner: ",
+         paste(saknade_kolumner, collapse = ", "), call. = FALSE)
+  }
+  if (nrow(data) == 0L) {
+    stop("CSV-filen innehåller inga observationer.", call. = FALSE)
+  }
+  if (anyDuplicated(names(data))) {
+    stop("CSV-filen innehåller dubbla kolumnnamn.", call. = FALSE)
+  }
+
+  data
+}
+
+sammanfatta_bortfall <- function(data) {
+  if (!is.data.frame(data) || nrow(data) == 0L || ncol(data) == 0L) {
+    stop("Ange en data.frame med minst en rad och en kolumn.", call. = FALSE)
+  }
+
+  antal_saknade <- colSums(is.na(data))
+  data.frame(
+    variabel = names(data),
+    observerade = nrow(data) - antal_saknade,
+    saknade = antal_saknade,
+    andel_saknade = 100 * antal_saknade / nrow(data),
+    row.names = NULL
+  )
+}
+
+childdata <- las_childdata()
+bortfall <- sammanfatta_bortfall(childdata)
+kompletta_fall <- stats::complete.cases(childdata[analysvariabler])
+antal_saknade_per_observation <- rowSums(is.na(childdata[analysvariabler]))
+
+bortfall_per_observation <- data.frame(
+  antal_saknade = 0:length(analysvariabler),
+  observationer = as.integer(table(factor(
+    antal_saknade_per_observation,
+    levels = 0:length(analysvariabler)
+  )))
+)
+```
+
+Linköpings Universitet
+
+# Inledning
+
+## Bakgrund
+
+<!-- Skriv bakgrunden här. -->
+
+## Syfte
+
+<!-- Beskriv syftet här. -->
+
+### Problemformulering (Frågeställning)
+
+<!-- Formulera frågeställningen här. -->
+
+## Etiska och samhälleliga aspekter
+
+<!-- Diskutera etiska och samhälleliga aspekter här. -->
+
+# Metod
+
+## Data
+
+<!-- Beskriv datamaterialet och urvalet här. -->
+
+## Variabler
+
+<!-- Beskriv variablerna och deras betydelse här. -->
+
+# Resultat och analys
+
+## Beskrivande statistik
+
+```{r}
+plot(childdata)
+```
+
+## Analys
+
+```{r sammanfattning-math}
+# Exempel: sammanfatta observerade värden för en mätvariabel.
+summary(childdata$MATH2014_2014)
+```
+
+<!-- Lägg till analys och tolkning här. -->
+
+# Diskussion
+
+<!-- Diskutera resultaten och studiens begränsningar här. -->
+
+# Referenser
+
+<!-- Lägg till referenser här. -->
+
+# Bilaga
+
+<!-- Lägg till bilagor här. -->
